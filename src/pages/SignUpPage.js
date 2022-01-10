@@ -1,6 +1,8 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import Input from "../components/Input";
+import { act } from "react-dom/test-utils";
 
 const SignUpPage = () => {
   const [disabled, setDisabled] = useState(true);
@@ -10,6 +12,7 @@ const SignUpPage = () => {
   const [passwordRepeat, setPasswordRepeat] = useState("");
   const [apiProgress, setApiProgress] = useState(false);
   const [signupSuccess, setSignUpSuccess] = useState(false);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (password.length > 0 && passwordRepeat.length > 0) {
@@ -21,7 +24,26 @@ const SignUpPage = () => {
     } else {
       setDisabled(true);
     }
-  }, [password, passwordRepeat]);
+    if (errors.username && username.length > 0) {
+      setErrors((errors.username = {}));
+    }
+    if (errors.email && email.length > 0) {
+      setErrors((errors.email = {}));
+    }
+    if (errors.password && password.length > 0) {
+      setErrors((errors.password = {}));
+    }
+  }, [username, email, password, passwordRepeat]);
+
+  const setInitialState = () => {
+    act(() => {
+      setUsername("");
+      setEmail("");
+      setPassword("");
+      setPasswordRepeat("");
+      setApiProgress(false);
+    });
+  };
 
   const submitForm = async (e) => {
     e.preventDefault();
@@ -33,9 +55,16 @@ const SignUpPage = () => {
     setApiProgress(true);
     try {
       await axios.post("/api/1.0/users", body).then(() => {
-        setSignUpSuccess(true);
+        act(() => {
+          setSignUpSuccess(true);
+        });
       });
-    } catch (error) {}
+    } catch (error) {
+      if (error.response.status === 400) {
+        setErrors(error.response.data.validationErrors);
+      }
+      setApiProgress(false);
+    }
     // fetch("/api/1.0/users", {
     //   method: "POST",
     //   headers: {
@@ -43,13 +72,13 @@ const SignUpPage = () => {
     //   },
     //   body: JSON.stringify(body),
     // });
-    setUsername("");
-    setEmail("");
-    setPassword("");
-    setPasswordRepeat("");
-    setApiProgress(false);
+    setInitialState();
   };
 
+  let passwordMismatch =
+    passwordRepeat.length > 0 && password !== passwordRepeat
+      ? "Password mismatch"
+      : "";
   return (
     <div className="col-lg-6 offset-lg-3 col-md-8 offset-md-2">
       {!signupSuccess && (
@@ -58,44 +87,38 @@ const SignUpPage = () => {
             <h1 className="text-center">Sign Up</h1>
           </div>
           <div className="card-body">
-            <div className="mb-3">
-              <label htmlFor="username">Username</label>
-              <input
-                id="username"
-                className="form-control"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="email">Email</label>
-              <input
-                id="email"
-                className="form-control"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                id="password"
-                className="form-control"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="password repeat">Password Repeat</label>
-              <input
-                type="password"
-                value={passwordRepeat}
-                className="form-control"
-                id="password repeat"
-                onChange={(e) => setPasswordRepeat(e.target.value)}
-              />
-            </div>
+            <Input
+              id="username"
+              label="Username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              help={errors.username}
+            />
+            <Input
+              id="email"
+              label="Email"
+              type="text"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              help={errors.email}
+            />
+            <Input
+              id="password"
+              label="Password"
+              value={password}
+              type="password"
+              onChange={(e) => setPassword(e.target.value)}
+              help={errors.password}
+            />
+            <Input
+              id="password repeat"
+              label="Password Repeat"
+              type="password"
+              value={passwordRepeat}
+              help={passwordMismatch}
+              onChange={(e) => setPasswordRepeat(e.target.value)}
+            />
             <div className="text-center">
               <button
                 className="btn btn-primary"
