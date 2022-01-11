@@ -5,7 +5,7 @@ import Input from "../components/Input";
 import { act } from "react-dom/test-utils";
 import { withTranslation } from "react-i18next";
 import "../locale/i18n";
-import LanguageSelector from "../components/LanguageSelector";
+
 import { signUp } from "../api/apiCalls";
 
 const SignUpPage = ({ t }) => {
@@ -84,7 +84,10 @@ const SignUpPage = ({ t }) => {
       ? t("passwordMismatchValidation")
       : "";
   return (
-    <div className="col-lg-6 offset-lg-3 col-md-8 offset-md-2">
+    <div
+      className="col-lg-6 offset-lg-3 col-md-8 offset-md-2"
+      data-testid="sign-up-page"
+    >
       {!signupSuccess && (
         <form className="card mt-5" data-testid="form-sign-up">
           <div className="card-header">
@@ -146,7 +149,6 @@ const SignUpPage = ({ t }) => {
           Please check your e-mail to activate your account.
         </div>
       )}
-      <LanguageSelector />
     </div>
   );
 };
