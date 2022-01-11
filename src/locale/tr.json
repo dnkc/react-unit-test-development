@@ -1,0 +1,8 @@
+{
+  "signUp": "Kayit Ol",
+  "username": "Kullanici Adi",
+  "email": "E-posta",
+  "password": "Sifre",
+  "passwordRepeat": "Sifre Tekrari",
+  "passwordMismatchValidation": "Sifreniz eslesmiyor"
+}

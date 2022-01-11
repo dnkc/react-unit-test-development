@@ -4,17 +4,41 @@ import {
   screen,
   waitFor,
   waitForElementToBeRemoved,
+  act,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import axios from "axios";
 import { setupServer } from "msw/node";
 import { rest } from "msw";
-
+import en from "../locale/en.json";
+import tr from "../locale/tr.json";
+import { changeLanguage } from "../locale/i18n";
 // lifecycle describe functions
 // beforeEach
 // beforeAll
 // afterEach
 // afterAll
+
+let requestBody;
+let counter = 0;
+let acceptLanguageHeader;
+const server = setupServer(
+  rest.post("/api/1.0/users", (req, res, ctx) => {
+    requestBody = req.body;
+    acceptLanguageHeader = req.headers.get("Accept-Language");
+    counter += 1;
+    return res(ctx.status(200));
+  })
+);
+beforeAll(() => {
+  server.listen();
+});
+afterAll(() => {
+  server.close();
+});
+beforeEach(() => {
+  counter = 0;
+  server.resetHandlers();
+});
 
 describe("Sign Up Page", () => {
   describe("Layout", () => {
@@ -31,7 +55,7 @@ describe("Sign Up Page", () => {
     });
     it("has email input", () => {
       render(<SignUpPage />);
-      const input = screen.getByLabelText("Email");
+      const input = screen.getByLabelText("E-mail");
       expect(input).toBeInTheDocument();
     });
     it("has password input", () => {
@@ -66,30 +90,11 @@ describe("Sign Up Page", () => {
     });
   });
   describe("Interactions", () => {
-    let requestBody;
-    let counter = 0;
-    const server = setupServer(
-      rest.post("/api/1.0/users", (req, res, ctx) => {
-        requestBody = req.body;
-        counter += 1;
-        return res(ctx.status(200));
-      })
-    );
-    beforeAll(() => {
-      server.listen();
-    });
-    afterAll(() => {
-      server.close();
-    });
-    beforeEach(() => {
-      counter = 0;
-      server.resetHandlers();
-    });
     let button, passwordInput, passwordRepeatInput, usernameInput, emailInput;
     const setup = () => {
       render(<SignUpPage />);
       usernameInput = screen.getByLabelText("Username");
-      emailInput = screen.getByLabelText("Email");
+      emailInput = screen.getByLabelText("E-mail");
       passwordInput = screen.getByLabelText("Password");
       passwordRepeatInput = screen.getByLabelText("Password Repeat");
       userEvent.type(usernameInput, "user1");
@@ -151,7 +156,7 @@ describe("Sign Up Page", () => {
       expect(counter).toBe(1);
     });
     // TO DO:
-    xit("TODO: displays spinner after clicking the submit", async () => {
+    xit("TODO (works but fails test?): displays spinner after clicking the submit", async () => {
       setup();
 
       expect(screen.queryByRole("status")).not.toBeInTheDocument();
@@ -227,7 +232,7 @@ describe("Sign Up Page", () => {
     it.each`
       field         | message                      | label
       ${"username"} | ${"Username cannot be null"} | ${"Username"}
-      ${"email"}    | ${"E-mail cannot be null"}   | ${"Email"}
+      ${"email"}    | ${"E-mail cannot be null"}   | ${"E-mail"}
       ${"password"} | ${"Password cannot be null"} | ${"Password"}
     `(
       "clears validation error after $field is updated",
@@ -257,5 +262,90 @@ describe("Sign Up Page", () => {
     //   const validationError = await screen.findByText("E-mail cannot be null");
     //   expect(validationError).toBeInTheDocument();
     // });
+  });
+  describe("Internationalization", () => {
+    let englishToggle;
+    let turkishToggle;
+    let passwordInput, passwordRepeatInput;
+
+    const setup = () => {
+      render(<SignUpPage />);
+      turkishToggle = screen.getByTitle("Turkish");
+      englishToggle = screen.getByTitle("English");
+      passwordInput = screen.getByLabelText("Password");
+      passwordRepeatInput = screen.getByLabelText("Password Repeat");
+    };
+
+    afterEach(() => {
+      act(() => {
+        changeLanguage("en");
+      });
+    });
+
+    it("displays all text in turkish after changing the language", () => {
+      setup();
+      userEvent.click(turkishToggle);
+      expect(
+        screen.getByRole("heading", { name: tr.signUp })
+      ).toBeInTheDocument();
+      expect(screen.getByLabelText(tr.username)).toBeInTheDocument();
+      expect(screen.getByLabelText(tr.email)).toBeInTheDocument();
+      expect(screen.getByLabelText(tr.password)).toBeInTheDocument();
+      expect(screen.getByLabelText(tr.passwordRepeat)).toBeInTheDocument();
+    });
+    it("initially displays all text in english", () => {
+      setup();
+      expect(
+        screen.getByRole("heading", { name: en.signUp })
+      ).toBeInTheDocument();
+      expect(screen.getByLabelText(en.username)).toBeInTheDocument();
+      expect(screen.getByLabelText(en.email)).toBeInTheDocument();
+      expect(screen.getByLabelText(en.password)).toBeInTheDocument();
+      expect(screen.getByLabelText(en.passwordRepeat)).toBeInTheDocument();
+    });
+    it("displays all text in english after changing back from turkish", () => {
+      setup();
+      userEvent.click(turkishToggle);
+      userEvent.click(englishToggle);
+      expect(
+        screen.getByRole("heading", { name: en.signUp })
+      ).toBeInTheDocument();
+      expect(screen.getByLabelText(en.username)).toBeInTheDocument();
+      expect(screen.getByLabelText(en.email)).toBeInTheDocument();
+      expect(screen.getByLabelText(en.password)).toBeInTheDocument();
+      expect(screen.getByLabelText(en.passwordRepeat)).toBeInTheDocument();
+    });
+
+    it("displays password mismatch validation in turkish", () => {
+      setup();
+      userEvent.click(turkishToggle);
+
+      userEvent.type(passwordRepeatInput, "P4ss");
+      const validationMessageTurkish = screen.queryByText(
+        tr.passwordMismatchValidation
+      );
+      expect(validationMessageTurkish).toBeInTheDocument();
+    });
+    it("sends accept language header as en for outgoing request", async () => {
+      setup();
+      userEvent.type(passwordInput, "Password");
+      userEvent.type(passwordRepeatInput, "Password");
+      const button = screen.getByRole("button", { name: en.signUp });
+      const form = screen.queryByTestId("form-sign-up");
+      userEvent.click(button);
+      await waitForElementToBeRemoved(form);
+      expect(acceptLanguageHeader).toBe("en");
+    });
+    it("sends accept language header as tr for outgoing request after selecting that language", async () => {
+      setup();
+      userEvent.type(passwordInput, "Password");
+      userEvent.type(passwordRepeatInput, "Password");
+      const button = screen.getByRole("button", { name: en.signUp });
+      userEvent.click(turkishToggle);
+      const form = screen.queryByTestId("form-sign-up");
+      userEvent.click(button);
+      await waitForElementToBeRemoved(form);
+      expect(acceptLanguageHeader).toBe("tr");
+    });
   });
 });

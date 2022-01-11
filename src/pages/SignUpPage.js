@@ -3,8 +3,12 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import Input from "../components/Input";
 import { act } from "react-dom/test-utils";
+import { withTranslation } from "react-i18next";
+import "../locale/i18n";
+import LanguageSelector from "../components/LanguageSelector";
+import { signUp } from "../api/apiCalls";
 
-const SignUpPage = () => {
+const SignUpPage = ({ t }) => {
   const [disabled, setDisabled] = useState(true);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -54,7 +58,7 @@ const SignUpPage = () => {
     };
     setApiProgress(true);
     try {
-      await axios.post("/api/1.0/users", body).then(() => {
+      await signUp(body).then(() => {
         act(() => {
           setSignUpSuccess(true);
         });
@@ -77,19 +81,19 @@ const SignUpPage = () => {
 
   let passwordMismatch =
     passwordRepeat.length > 0 && password !== passwordRepeat
-      ? "Password mismatch"
+      ? t("passwordMismatchValidation")
       : "";
   return (
     <div className="col-lg-6 offset-lg-3 col-md-8 offset-md-2">
       {!signupSuccess && (
         <form className="card mt-5" data-testid="form-sign-up">
           <div className="card-header">
-            <h1 className="text-center">Sign Up</h1>
+            <h1 className="text-center">{t("signUp")}</h1>
           </div>
           <div className="card-body">
             <Input
               id="username"
-              label="Username"
+              label={t("username")}
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -97,7 +101,7 @@ const SignUpPage = () => {
             />
             <Input
               id="email"
-              label="Email"
+              label={t("email")}
               type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -105,7 +109,7 @@ const SignUpPage = () => {
             />
             <Input
               id="password"
-              label="Password"
+              label={t("password")}
               value={password}
               type="password"
               onChange={(e) => setPassword(e.target.value)}
@@ -113,7 +117,7 @@ const SignUpPage = () => {
             />
             <Input
               id="password repeat"
-              label="Password Repeat"
+              label={t("passwordRepeat")}
               type="password"
               value={passwordRepeat}
               help={passwordMismatch}
@@ -131,7 +135,7 @@ const SignUpPage = () => {
                     role="status"
                   ></span>
                 )}
-                Sign Up
+                {t("signUp")}
               </button>
             </div>
           </div>
@@ -142,8 +146,11 @@ const SignUpPage = () => {
           Please check your e-mail to activate your account.
         </div>
       )}
+      <LanguageSelector />
     </div>
   );
 };
 
-export default SignUpPage;
+const SignUpPagewithTranslation = withTranslation()(SignUpPage);
+
+export default SignUpPagewithTranslation;
