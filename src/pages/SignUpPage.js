@@ -1,6 +1,5 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import axios from "axios";
 import Input from "../components/Input";
 import { act } from "react-dom/test-utils";
 import { withTranslation } from "react-i18next";
@@ -37,7 +36,7 @@ const SignUpPage = ({ t }) => {
     if (errors.password && password.length > 0) {
       setErrors((errors.password = {}));
     }
-  }, [username, email, password, passwordRepeat]);
+  }, [username, email, password, passwordRepeat, errors]);
 
   const setInitialState = () => {
     act(() => {
