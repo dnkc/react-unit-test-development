@@ -4,6 +4,8 @@ import Input from "../components/Input";
 import { act } from "react-dom/test-utils";
 import { withTranslation } from "react-i18next";
 import "../locale/i18n";
+import Alert from "../components/Alert";
+import Spinner from "../components/Spinner";
 
 import { signUp } from "../api/apiCalls";
 
@@ -131,12 +133,7 @@ const SignUpPage = ({ t }) => {
                 disabled={disabled || apiProgress}
                 onClick={(e) => submitForm(e)}
               >
-                {apiProgress && (
-                  <span
-                    className="spinner-border spinner-border-sm"
-                    role="status"
-                  ></span>
-                )}
+                {apiProgress && <Spinner size="sm" />}
                 {t("signUp")}
               </button>
             </div>
@@ -144,9 +141,7 @@ const SignUpPage = ({ t }) => {
         </form>
       )}
       {signupSuccess && (
-        <div className="alert alert-success mt-3">
-          Please check your e-mail to activate your account.
-        </div>
+        <Alert>Please check your e-mail to activate your account.</Alert>
       )}
     </div>
   );

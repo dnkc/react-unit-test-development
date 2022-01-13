@@ -5,6 +5,7 @@ const logger = require('./src/shared/logger');
 const FileService = require('./src/file/FileService');
 const User = require('./src/user/User');
 const bcrypt = require('bcrypt');
+const PORT = 8080;
 
 sequelize.sync();
 
@@ -32,4 +33,6 @@ const add = async () => {
 
 add();
 
-app.listen(8080, () => logger.info('app is running. version: ' + process.env.npm_package_version));
+app.listen(PORT, () =>
+  logger.info(`app is running on port ${PORT}. version ` + ':  + process.env.npm_package_version')
+);

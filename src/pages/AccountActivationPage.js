@@ -2,40 +2,45 @@ import React from "react";
 import { useParams } from "react-router-dom";
 import { activate } from "../api/apiCalls";
 import { useEffect, useState } from "react";
-import { useIsMounted } from "../components/isMounted";
+import Alert from "../components/Alert";
+import Spinner from "../components/Spinner";
 
 const AccountActivationPage = () => {
   const { token } = useParams();
   const [result, setResult] = useState("");
-  const isMounted = useIsMounted();
+
+  const apiCall = async () => {
+    await activate(token)
+      .then(() => {
+        //console.log("successful api call");
+        setResult("success");
+      })
+      .catch(() => {
+        // console.log("failed api call");
+        setResult("fail");
+      });
+    // console.log("token: ", token);
+    //console.log("result: ", result);
+  };
 
   useEffect(() => {
-    const apiCall = async () => {
-      await activate(token)
-        .then(() => {
-          console.log("successful api call");
-          setResult("success");
-        })
-        .catch(() => {
-          console.log("failed api call");
-          setResult("fail");
-        });
-    };
     apiCall();
-    console.log("token: ", token);
-    console.log("result: ", result);
-  }, [result, token]);
+  }, []);
 
-  return (
-    <div data-testid="activation-page">
-      {result === "success" && (
-        <div className="alert alert-success mt-3">Account is activated</div>
-      )}
-      {result === "fail" && (
-        <div className="danger alert-danger mt-3">Activation failure</div>
-      )}
-    </div>
+  let content = (
+    <Alert type="secondary">
+      <Spinner size="big" center />
+    </Alert>
   );
+
+  if (result === "success") {
+    content = <Alert>Account is activated</Alert>;
+  }
+  if (result === "fail") {
+    content = <Alert type="danger">Activation failure</Alert>;
+  }
+
+  return <div data-testid="activation-page">{content}</div>;
 };
 
 export default AccountActivationPage;
