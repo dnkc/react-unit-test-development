@@ -3,7 +3,7 @@ import { currentLanguage } from "../locale/i18n";
 import cors from "cors";
 
 export const signUp = (body) => {
-  return axios.post("/api/1.0/users", body, {
+  return axios.post("http://localhost:8080/api/1.0/users", body, {
     headers: {
       "Accept-Language": currentLanguage(),
     },
@@ -12,7 +12,7 @@ export const signUp = (body) => {
 
 export const activate = (token) => {
   return axios.post(
-    `/api/1.0/users/token/${token}`,
+    `http://localhost:8080/api/1.0/users/token/${token}`,
     { mode: cors },
     {
       headers: {
@@ -20,4 +20,13 @@ export const activate = (token) => {
       },
     }
   );
+};
+
+export const loadUsers = (page) => {
+  return axios.get("http://localhost:8080/api/1.0/users", {
+    params: { page, size: 3 },
+    headers: {
+      "Accept-Language": currentLanguage(),
+    },
+  });
 };

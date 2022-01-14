@@ -12,7 +12,21 @@ const server = setupServer(
     return res(ctx.status(200));
   }),
   rest.post("/api/1.0/users/token/:token", (req, res, ctx) => {
+    if (req.params.token === "5678") {
+      return res(ctx.status(400));
+    }
     return res(ctx.status(200));
+  }),
+  rest.get("/api/1.0/users", (req, res, ctx) => {
+    return res(
+      ctx.status(200),
+      ctx.json({
+        content: [],
+        page: 0,
+        size: 0,
+        totalPages: 0,
+      })
+    );
   })
 );
 

@@ -26,6 +26,9 @@ describe("Account Activation Page", () => {
   afterAll(() => {
     server.close();
   });
+  beforeEach(() => {
+    server.resetHandlers();
+  });
   afterEach(() => {
     counter = 0;
   });
