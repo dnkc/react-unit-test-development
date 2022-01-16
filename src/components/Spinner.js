@@ -6,7 +6,7 @@ const Spinner = (props) => {
     spanClass += " spinner-border-sm";
   }
 
-  return <span className={spanClass}></span>;
+  return <span className={spanClass} data-testid="test-spinner"></span>;
 };
 
 Spinner.defaultProps = {

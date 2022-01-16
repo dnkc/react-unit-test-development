@@ -4,5 +4,8 @@
   "email": "E-posta",
   "password": "Sifre",
   "passwordRepeat": "Sifre Tekrari",
-  "passwordMismatchValidation": "Sifreniz eslesmiyor"
+  "passwordMismatchValidation": "Sifreniz eslesmiyor",
+  "users": "Kullanicilar",
+  "nextPage": "sonraki >",
+  "prevPage": "< onceki"
 }

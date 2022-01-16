@@ -1,9 +1,9 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import Input from "../components/Input";
 import { act } from "react-dom/test-utils";
 import { withTranslation } from "react-i18next";
 import "../locale/i18n";
+import Input from "../components/Input";
 import Alert from "../components/Alert";
 import Spinner from "../components/Spinner";
 

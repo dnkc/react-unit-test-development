@@ -61,7 +61,7 @@ describe("Account Activation Page", () => {
   });
   xit("TODO (msw not recognizing req.params):displays spinner during activation api call", async () => {
     setup("5678");
-    const spinner = screen.queryByRole("status");
+    const spinner = screen.getByTestId("test-spinner");
     expect(spinner).toBeInTheDocument();
     await screen.findByText("Activation failure");
     expect(spinner).not.toBeInTheDocument();
@@ -73,7 +73,7 @@ describe("Account Activation Page", () => {
     const { rerender } = render(<AccountActivationPage />);
     setup("5678");
     rerender(<AccountActivationPage />);
-    const spinner = screen.queryByRole("status");
+    const spinner = screen.getByTestId("test-spinner");
     expect(spinner).toBeInTheDocument();
     await screen.findByText("Activation failure");
     expect(spinner).not.toBeInTheDocument();

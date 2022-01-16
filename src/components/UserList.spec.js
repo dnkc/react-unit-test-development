@@ -1,8 +1,15 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, act } from "@testing-library/react";
 import { setupServer } from "msw/node";
 import { rest } from "msw";
 import UserList from "./UserList";
 import userEvent from "@testing-library/user-event";
+import en from "../locale/en";
+import tr from "../locale/tr";
+
+import { BrowserRouter as Router } from "react-router-dom";
+import LanguageSelector from "./LanguageSelector";
+import { changeLanguage } from "../locale/i18n";
+
 const users = [
   { id: 1, username: "user1", email: "user1@mail.com", image: null },
   { id: 2, username: "user2", email: "user2@mail.com", image: null },
@@ -18,26 +25,22 @@ const getPage = (page, size) => {
   let end = start + size;
   let totalPages = Math.ceil(users.length / size);
   return {
-    content: users.slice(start, end),
-    page,
-    size,
-    totalPages,
+    state: {
+      content: users.slice(start, end),
+      page,
+      size,
+      totalPages,
+    },
   };
 };
 
-const page1 = {
-  content: [
-    { id: 1, username: "user1", email: "user1@mail.com", image: null },
-    { id: 2, username: "user2", email: "user2@mail.com", image: null },
-    { id: 3, username: "user3", email: "user3@mail.com", image: null },
-  ],
-  page: 0,
-  size: 3,
-  totalPages: 9,
-};
-
 const setup = () => {
-  render(<UserList />);
+  render(
+    <Router>
+      <UserList />
+      <LanguageSelector />
+    </Router>
+  );
 };
 
 const server = setupServer(
@@ -50,6 +53,7 @@ const server = setupServer(
     if (Number.isNaN(size)) {
       size = 5;
     }
+    //console.log("GET PAGE LOG-------", getPage(page, size));
     return res(ctx.status(200), ctx.json(getPage(page, size)));
   })
 );
@@ -65,54 +69,97 @@ beforeEach(() => {
 });
 
 describe("User List", () => {
-  it("displays 3 users in list", async () => {
-    setup();
-    const users = await screen.findAllByText(/user/);
-    expect(users.length).toBe(3);
+  describe("Interactions", () => {
+    it("displays 3 users in list", async () => {
+      setup();
+      const users = await screen.findAllByText(/user/);
+      expect(users.length).toBe(3);
+    });
+    it("it displays next page link", async () => {
+      setup();
+      await screen.findAllByText("user1");
+      expect(screen.queryByText("next >")).toBeInTheDocument();
+    });
+    it("displays next page after clicking next", async () => {
+      setup();
+      await screen.findByText("user1");
+      const nextPageLink = screen.queryByText("next >");
+      userEvent.click(nextPageLink);
+      const user2 = await screen.findByText("user4");
+      expect(user2).toBeInTheDocument();
+    });
+    xit("TODO (functional but test fails?): hides next page link at last page", async () => {
+      setup();
+      await screen.findByText("user1");
+      userEvent.click(screen.queryByText("next >"));
+      await screen.findByText("user4");
+      userEvent.click(screen.queryByText("next >"));
+      await screen.findByText("user7");
+      expect(screen.queryByText("next >")).not.toBeInTheDocument();
+    });
+    it("does not display the previous page link in first page", async () => {
+      setup();
+      await screen.findByText("user1");
+      const previousPageLink = screen.queryByText("< prev");
+      expect(previousPageLink).not.toBeInTheDocument();
+    });
+    it("displays the previous page link in second page", async () => {
+      setup();
+      await screen.findByText("user1");
+      userEvent.click(screen.queryByText("next >"));
+      await screen.findByText("user4");
+      const previousPageLink = screen.queryByText("< prev");
+      expect(previousPageLink).toBeInTheDocument();
+    });
+    it("displays the previous page after clicking previous page link", async () => {
+      setup();
+      await screen.findByText("user1");
+      userEvent.click(screen.queryByText("next >"));
+      await screen.findByText("user4");
+      userEvent.click(screen.queryByText("< prev"));
+      const user1 = await screen.findByText("user1");
+      expect(user1).toBeInTheDocument();
+    });
+    it(" displays spinner while the api call is in progress", async () => {
+      setup();
+      const spinner = screen.queryByRole("status");
+      await screen.findByText("user1");
+      expect(spinner).not.toBeInTheDocument();
+    });
   });
-  it("it displays next page link", async () => {
-    setup();
-    const user = await screen.findAllByText("user1");
-    expect(screen.queryByText("next >")).toBeInTheDocument();
-  });
-  it("displays next page after clicking next", async () => {
-    setup();
-    await screen.findByText("user1");
-    const nextPageLink = screen.queryByText("next >");
-    userEvent.click(nextPageLink);
-    const user2 = await screen.findByText("user4");
-    expect(user2).toBeInTheDocument();
-  });
-  xit("TODO (done, idk why it fails): hides next page link at last page", async () => {
-    setup();
-    await screen.findByText("user1");
-    userEvent.click(screen.queryByText("next >"));
-    await screen.findByText("user4");
-    userEvent.click(screen.queryByText("next >"));
-    await screen.findByText("user7");
-    expect(screen.queryByText("next >")).not.toBeInTheDocument();
-  });
-  it("does not display the previous page link in first page", async () => {
-    setup();
-    await screen.findByText("user1");
-    const previousPageLink = screen.queryByText("< prev");
-    expect(previousPageLink).not.toBeInTheDocument();
-  });
-  it("displays the previous page link in second page", async () => {
-    setup();
-    await screen.findByText("user1");
-    userEvent.click(screen.queryByText("next >"));
-    await screen.findByText("user4");
-    const previousPageLink = screen.queryByText("< prev");
-    expect(previousPageLink).toBeInTheDocument();
-  });
-  it("displays the previous page after clicking previous page link", async () => {
-    setup();
-    await screen.findByText("user1");
-    userEvent.click(screen.queryByText("next >"));
-    await screen.findByText("user4");
-    userEvent.click(screen.queryByText("< prev"));
-    const user1 = await screen.findByText("user1");
-    expect(user1).toBeInTheDocument();
+  describe("Internationalization", () => {
+    beforeEach(() => {
+      server.use(
+        rest.get("/api/1.0/users", (req, res, ctx) => {
+          return res(ctx.status(200), ctx.json(getPage(1, 3)));
+        })
+      );
+    });
+    afterEach(() => {
+      act(() => {
+        changeLanguage("en");
+      });
+    });
+    it("initially displays header and navigation links in english", async () => {
+      setup();
+      await screen.findByText("user1");
+      const nextPageLink = screen.queryByText("next >");
+      userEvent.click(nextPageLink);
+      await screen.findByText("user4");
+      expect(screen.getByText(en.users)).toBeInTheDocument();
+      expect(screen.getByText(en.nextPage)).toBeInTheDocument();
+      expect(screen.getByText(en.prevPage)).toBeInTheDocument();
+    });
+    it("displays header and navigation links in turkish after selecting the language", async () => {
+      setup();
+      await screen.findByText("user1");
+      const nextPageLink = screen.queryByText("next >");
+      userEvent.click(nextPageLink);
+      await screen.findByText("user4");
+      userEvent.click(screen.getByTitle("Turkish"));
+      expect(screen.getByText(tr.users)).toBeInTheDocument();
+      expect(screen.getByText(tr.nextPage)).toBeInTheDocument();
+      expect(screen.getByText(tr.prevPage)).toBeInTheDocument();
+    });
   });
 });
