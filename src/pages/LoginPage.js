@@ -3,20 +3,27 @@ import Input from "../components/Input";
 import Alert from "../components/Alert";
 import Spinner from "../components/Spinner";
 import { useState, useEffect } from "react";
+import { login } from "../api/apiCalls";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [buttonDisabled, setButtonDisabled] = useState(true);
+  const [apiProgress, setApiProgress] = useState(false);
 
   useEffect(() => {
-    if (email.length > 0 && password.length > 0) {
-      setButtonDisabled(false);
-    } else {
-      setButtonDisabled(true);
-    }
+    setButtonDisabled(!(email && password));
   }, [email, password]);
+
+  const submitForm = async (e) => {
+    e.preventDefault();
+    setApiProgress(true);
+    try {
+      await login({ email, password });
+    } catch (error) {}
+    setApiProgress(false);
+  };
 
   return (
     <>
@@ -51,9 +58,10 @@ const LoginPage = () => {
                 <button
                   disabled
                   className="btn btn-primary"
-                  disabled={buttonDisabled}
-                  //onClick={(e) => submitForm(e)}
+                  disabled={buttonDisabled || apiProgress}
+                  onClick={(e) => submitForm(e)}
                 >
+                  {apiProgress && <Spinner />}
                   Login
                 </button>
               </div>
