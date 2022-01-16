@@ -24,7 +24,7 @@ function App() {
               {t("signUp")}
             </Link>
             <Link className="navbar-brand" to="/login">
-              Login
+              {t("login")}
             </Link>
           </ul>
         </div>

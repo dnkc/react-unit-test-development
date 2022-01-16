@@ -7,5 +7,6 @@
   "passwordMismatchValidation": "Sifreniz eslesmiyor",
   "users": "Kullanicilar",
   "nextPage": "sonraki >",
-  "prevPage": "< onceki"
+  "prevPage": "< onceki",
+  "login": "Oturum Ac"
 }

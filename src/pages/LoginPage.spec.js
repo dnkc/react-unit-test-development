@@ -12,14 +12,18 @@ import en from "../locale/en.json";
 import tr from "../locale/tr.json";
 import { changeLanguage } from "../locale/i18n";
 import LoginPage from "./LoginPage";
+import LanguageSelector from "../components/LanguageSelector";
 
 let requestBody,
-  count = 0;
+  count = 0,
+  acceptLanguageHeader;
 const server = setupServer(
   rest.post("/api/1.0/auth", (req, res, ctx) => {
     requestBody = req.body;
     count += 1;
-    return res(ctx.status(401));
+    acceptLanguageHeader = req.headers.get("Accept-Language");
+
+    return res(ctx.status(401), ctx.json({ message: "Incorrect credentials" }));
   })
 );
 beforeAll(() => {
@@ -70,11 +74,11 @@ describe("Login Page", () => {
     });
   });
   describe("Interactions", () => {
-    let button;
+    let button, emailInput, passwordInput;
     const setup = () => {
       render(<LoginPage />);
-      const emailInput = screen.getByLabelText("E-mail");
-      const passwordInput = screen.getByLabelText("Password");
+      emailInput = screen.getByLabelText("E-mail");
+      passwordInput = screen.getByLabelText("Password");
       userEvent.type(emailInput, "user100@mail.com");
       userEvent.type(passwordInput, "P4ssword");
       button = screen.queryByRole("button", { name: "Login" });
@@ -109,6 +113,97 @@ describe("Login Page", () => {
       // const spinner = await screen.queryByTestId("test-spinner");
       // await waitForElementToBeRemoved(spinner);
       expect(count).toEqual(1);
+    });
+    it("displays authentication message", async () => {
+      setup();
+      userEvent.click(button);
+      const errorMessage = await screen.findByText("Incorrect credentials");
+      expect(errorMessage).toBeInTheDocument();
+    });
+    it("clears authentication fail message when email field is changed", async () => {
+      setup();
+      userEvent.click(button);
+      const errorMessage = await screen.findByText("Incorrect credentials");
+      userEvent.type(emailInput, "new@mail.com");
+      expect(errorMessage).not.toBeInTheDocument();
+    });
+    it("clears authentication fail message when password field is changed", async () => {
+      setup();
+      userEvent.click(button);
+      const errorMessage = await screen.findByText("Incorrect credentials");
+      userEvent.type(passwordInput, "newP4ss");
+      expect(errorMessage).not.toBeInTheDocument();
+    });
+  });
+  describe("Internationalization", () => {
+    let englishToggle;
+    let turkishToggle;
+    let passwordInput, emailInput;
+
+    const setup = () => {
+      render(<LoginPage />);
+      render(<LanguageSelector />);
+      turkishToggle = screen.getByTitle("Turkish");
+      englishToggle = screen.getByTitle("English");
+      passwordInput = screen.getByLabelText("Password");
+      emailInput = screen.getByLabelText("E-mail");
+    };
+
+    afterEach(() => {
+      act(() => {
+        changeLanguage("en");
+      });
+    });
+
+    it("initially displays all text in english", () => {
+      setup();
+      expect(
+        screen.getByRole("heading", { name: en.login })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: en.login })
+      ).toBeInTheDocument();
+      expect(screen.getByLabelText(en.email)).toBeInTheDocument();
+      expect(screen.getByLabelText(en.password)).toBeInTheDocument();
+    });
+    it("displays all text in turkish after changing the language", () => {
+      setup();
+      userEvent.click(turkishToggle);
+      expect(
+        screen.getByRole("heading", { name: tr.login })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: tr.login })
+      ).toBeInTheDocument();
+      expect(screen.getByLabelText(tr.email)).toBeInTheDocument();
+      expect(screen.getByLabelText(tr.password)).toBeInTheDocument();
+    });
+    it("sets accept language header as en for outgoing request after selecting that language", async () => {
+      setup();
+      emailInput = screen.getByLabelText("E-mail");
+      passwordInput = screen.getByLabelText("Password");
+      userEvent.type(emailInput, "user100@mail.com");
+      userEvent.type(passwordInput, "P4ssword");
+      const button = screen.queryByRole("button", { name: "Login" });
+      userEvent.click(button);
+      let spinner;
+      spinner = await screen.queryByTestId("test-spinner");
+      await waitForElementToBeRemoved(spinner);
+      expect(acceptLanguageHeader).toBe("en");
+    });
+    it("sets accept language header as tr for outgoing request after selecting that language", async () => {
+      setup();
+      emailInput = screen.getByLabelText("E-mail");
+      passwordInput = screen.getByLabelText("Password");
+      userEvent.type(emailInput, "user100@mail.com");
+      userEvent.type(passwordInput, "P4ssword");
+      const button = screen.queryByRole("button", { name: "Login" });
+      userEvent.click(turkishToggle);
+      userEvent.click(button);
+      let spinner;
+      spinner = await screen.queryByTestId("test-spinner");
+      await waitForElementToBeRemoved(spinner);
+      expect(acceptLanguageHeader).toBe("tr");
     });
   });
 });

@@ -6,6 +6,7 @@ import "../locale/i18n";
 import Input from "../components/Input";
 import Alert from "../components/Alert";
 import Spinner from "../components/Spinner";
+import Button from "../components/Button";
 
 import { signUp } from "../api/apiCalls";
 
@@ -128,14 +129,14 @@ const SignUpPage = ({ t }) => {
               onChange={(e) => setPasswordRepeat(e.target.value)}
             />
             <div className="text-center">
-              <button
-                className="btn btn-primary"
-                disabled={disabled || apiProgress}
+              <Button
                 onClick={(e) => submitForm(e)}
+                disabled={disabled}
+                apiProgress={apiProgress}
               >
-                {apiProgress && <Spinner size="sm" />}
+                {" "}
                 {t("signUp")}
-              </button>
+              </Button>
             </div>
           </div>
         </form>

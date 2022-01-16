@@ -1,9 +1,11 @@
 import React from "react";
 import Input from "../components/Input";
 import Alert from "../components/Alert";
-import Spinner from "../components/Spinner";
+import Button from "../components/Button";
 import { useState, useEffect } from "react";
 import { login } from "../api/apiCalls";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -11,6 +13,10 @@ const LoginPage = () => {
   const [errors, setErrors] = useState({});
   const [buttonDisabled, setButtonDisabled] = useState(true);
   const [apiProgress, setApiProgress] = useState(false);
+  const [failedMessage, setFailedMessage] = useState();
+
+  const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     setButtonDisabled(!(email && password));
@@ -21,7 +27,10 @@ const LoginPage = () => {
     setApiProgress(true);
     try {
       await login({ email, password });
-    } catch (error) {}
+      navigate("/");
+    } catch (error) {
+      setFailedMessage(error.response.data.message);
+    }
     setApiProgress(false);
   };
 
@@ -34,36 +43,40 @@ const LoginPage = () => {
         {
           <form className="card mt-5">
             <div className="card-header">
-              <h1 className="text-center">Login</h1>
+              <h1 className="text-center">{t("login")}</h1>
             </div>
             <div className="card-body">
               <Input
                 id="email"
-                label="E-mail"
+                label={t("email")}
                 type="text"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setFailedMessage();
+                }}
                 help={errors.email}
               />
               <Input
                 id="password"
-                label="Password"
+                label={t("password")}
                 value={password}
                 type="password"
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setFailedMessage();
+                }}
                 help={errors.password}
               />
-
+              {failedMessage && <Alert type="danger">{failedMessage}</Alert>}
               <div className="text-center">
-                <button
-                  disabled
-                  className="btn btn-primary"
-                  disabled={buttonDisabled || apiProgress}
+                <Button
+                  disabled={buttonDisabled}
+                  apiProgress={apiProgress}
                   onClick={(e) => submitForm(e)}
                 >
-                  {apiProgress && <Spinner />}
-                  Login
-                </button>
+                  {t("login")}
+                </Button>
               </div>
             </div>
           </form>
