@@ -6,14 +6,18 @@ import { useState, useEffect } from "react";
 import { login } from "../api/apiCalls";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
+import { useContext } from "react";
+import { AuthContext } from "../state/AuthContextWrapper";
 
-const LoginPage = () => {
+const LoginPage = (props) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [buttonDisabled, setButtonDisabled] = useState(true);
   const [apiProgress, setApiProgress] = useState(false);
   const [failedMessage, setFailedMessage] = useState();
+
+  const auth = useContext(AuthContext);
 
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -26,7 +30,10 @@ const LoginPage = () => {
     e.preventDefault();
     setApiProgress(true);
     try {
-      await login({ email, password });
+      const response = await login({ email, password });
+
+      auth.onLoginSuccess({ isLoggedIn: true, id: response.data.id });
+
       navigate("/");
     } catch (error) {
       setFailedMessage(error.response.data.message);

@@ -5,12 +5,13 @@ import ProfileCard from "../components/ProfileCard";
 import Spinner from "../components/Spinner";
 import Alert from "../components/Alert";
 
-const UserPage = () => {
+const UserPage = (props) => {
   const [user, setUserState] = useState([]);
   const [apiProgress, setApiProgress] = useState(false);
   const [failedResponse, setFailedResponse] = useState("");
 
   const { id } = useParams();
+  const { auth } = props;
 
   useEffect(() => {
     const loadUser = async () => {
@@ -37,7 +38,7 @@ const UserPage = () => {
   );
 
   if (failedResponse.length < 1) {
-    content = <ProfileCard user={user} />;
+    content = <ProfileCard user={user} auth={auth} />;
   } else {
     content = <Alert type="danger">{failedResponse}</Alert>;
   }

@@ -3,33 +3,15 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import UserPage from "./pages/UserPage";
 import AccountActivationPage from "./pages/AccountActivationPage";
-import { useTranslation } from "react-i18next";
+import Navbar from "./components/Navbar";
 import LanguageSelector from "./components/LanguageSelector";
-import logo from "./assets/hoax.png";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 function App() {
-  const { t } = useTranslation();
-
   return (
-    <Router>
-      <nav className="navbar navbar-expand navbar-light bg-light shadow-sm">
-        <div className="container">
-          <Link className="navbar-brand" to="/" title="Home">
-            <img src={logo} alt="hoax" width="60" />
-            Hoax
-          </Link>
-          <ul className="navbar-nav">
-            <Link className="navbar-brand" to="/signup">
-              {t("signUp")}
-            </Link>
-            <Link className="navbar-brand" to="/login">
-              {t("login")}
-            </Link>
-          </ul>
-        </div>
-      </nav>
-
+    <>
+      {" "}
+      <Navbar />
       <div className="container pt-3">
         <Routes>
           <Route exact path="/" element={<HomePage />} />
@@ -40,7 +22,7 @@ function App() {
         </Routes>
         <LanguageSelector />
       </div>
-    </Router>
+    </>
   );
 }
 

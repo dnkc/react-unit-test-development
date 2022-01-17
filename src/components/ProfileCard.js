@@ -1,8 +1,12 @@
 import React from "react";
 import defaultProfileImage from "../assets/profile.png";
+import { AuthContext } from "../state/AuthContextWrapper";
+import { useContext } from "react";
 
 const ProfileCard = (props) => {
   const { user } = props;
+  const auth = useContext(AuthContext);
+
   return (
     <>
       <div className="card text-center">
@@ -19,6 +23,7 @@ const ProfileCard = (props) => {
         <div className="card-body">
           <h3>{user.username}</h3>
         </div>
+        {auth && user.id === auth.id && <button>Edit</button>}
       </div>
     </>
   );

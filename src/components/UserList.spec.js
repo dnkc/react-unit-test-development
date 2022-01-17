@@ -1,4 +1,4 @@
-import { render, screen, act } from "@testing-library/react";
+import { render, screen, act } from "../test/setup";
 import { setupServer } from "msw/node";
 import { rest } from "msw";
 import UserList from "./UserList";
@@ -6,8 +6,6 @@ import userEvent from "@testing-library/user-event";
 import en from "../locale/en";
 import tr from "../locale/tr";
 
-import { BrowserRouter as Router } from "react-router-dom";
-import LanguageSelector from "./LanguageSelector";
 import { changeLanguage } from "../locale/i18n";
 
 const users = [
@@ -35,12 +33,7 @@ const getPage = (page, size) => {
 };
 
 const setup = () => {
-  render(
-    <Router>
-      <UserList />
-      <LanguageSelector />
-    </Router>
-  );
+  render(<UserList />);
 };
 
 const server = setupServer(

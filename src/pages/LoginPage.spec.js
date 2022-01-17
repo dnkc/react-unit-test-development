@@ -4,7 +4,7 @@ import {
   waitFor,
   waitForElementToBeRemoved,
   act,
-} from "@testing-library/react";
+} from "../test/setup";
 import userEvent from "@testing-library/user-event";
 import { setupServer } from "msw/node";
 import { rest } from "msw";
