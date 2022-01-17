@@ -31,6 +31,7 @@ describe("Account Activation Page", () => {
   });
   afterEach(() => {
     counter = 0;
+    localStorage.clear();
   });
 
   it("displays activation success message when token is valid", async () => {

@@ -6,10 +6,9 @@ import { useState, useEffect } from "react";
 import { login } from "../api/apiCalls";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
-import { useContext } from "react";
-import { AuthContext } from "../state/AuthContextWrapper";
+import { useDispatch } from "react-redux";
 
-const LoginPage = (props) => {
+const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
@@ -17,7 +16,7 @@ const LoginPage = (props) => {
   const [apiProgress, setApiProgress] = useState(false);
   const [failedMessage, setFailedMessage] = useState();
 
-  const auth = useContext(AuthContext);
+  const dispatch = useDispatch();
 
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -31,10 +30,12 @@ const LoginPage = (props) => {
     setApiProgress(true);
     try {
       const response = await login({ email, password });
-
-      auth.onLoginSuccess({ isLoggedIn: true, id: response.data.id });
-
       navigate("/");
+      dispatch({
+        type: "login-success",
+        payload: { ...response.data, header: `Bearer ${response.data.token}` },
+      });
+      // auth.onLoginSuccess({ isLoggedIn: true, id: response.data.id });
     } catch (error) {
       setFailedMessage(error.response.data.message);
     }

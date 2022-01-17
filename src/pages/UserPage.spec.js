@@ -18,7 +18,9 @@ afterAll(() => {
 beforeEach(() => {
   server.resetHandlers();
 });
-afterEach(() => {});
+afterEach(() => {
+  localStorage.clear();
+});
 
 describe("User Page", () => {
   beforeEach(() => {

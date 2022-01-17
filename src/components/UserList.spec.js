@@ -60,6 +60,9 @@ afterAll(() => {
 beforeEach(() => {
   server.resetHandlers();
 });
+afterEach(() => {
+  localStorage.clear();
+});
 
 describe("User List", () => {
   describe("Interactions", () => {

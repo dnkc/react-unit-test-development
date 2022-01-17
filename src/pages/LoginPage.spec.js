@@ -13,6 +13,7 @@ import tr from "../locale/tr.json";
 import { changeLanguage } from "../locale/i18n";
 import LoginPage from "./LoginPage";
 import LanguageSelector from "../components/LanguageSelector";
+import storage from "../state/storage";
 
 let requestBody,
   count = 0,
@@ -22,7 +23,6 @@ const server = setupServer(
     requestBody = req.body;
     count += 1;
     acceptLanguageHeader = req.headers.get("Accept-Language");
-
     return res(ctx.status(401), ctx.json({ message: "Incorrect credentials" }));
   })
 );
@@ -36,8 +36,9 @@ beforeEach(() => {
   count = 0;
   server.resetHandlers();
 });
-//   afterEach(() => {
-//   });
+afterEach(() => {
+  localStorage.clear();
+});
 
 describe("Login Page", () => {
   describe("Layout", () => {
@@ -75,11 +76,11 @@ describe("Login Page", () => {
   });
   describe("Interactions", () => {
     let button, emailInput, passwordInput;
-    const setup = () => {
+    const setup = (email = "user100@mail.com") => {
       render(<LoginPage />);
       emailInput = screen.getByLabelText("E-mail");
       passwordInput = screen.getByLabelText("Password");
-      userEvent.type(emailInput, "user100@mail.com");
+      userEvent.type(emailInput, email);
       userEvent.type(passwordInput, "P4ssword");
       button = screen.queryByRole("button", { name: "Login" });
     };
@@ -133,6 +134,50 @@ describe("Login Page", () => {
       const errorMessage = await screen.findByText("Incorrect credentials");
       userEvent.type(passwordInput, "newP4ss");
       expect(errorMessage).not.toBeInTheDocument();
+    });
+    it("stores id, username and image in storage", async () => {
+      server.use(
+        rest.post("/api/1.0/auth", (req, res, ctx) => {
+          requestBody = req.body;
+          acceptLanguageHeader = req.headers.get("Accept-Language");
+          return res(
+            ctx.status(200),
+            ctx.json({ id: 5, username: "user5", image: null })
+          );
+        })
+      );
+      setup("user5@mail.com");
+      userEvent.click(button);
+      screen.queryByTestId("test-spinner");
+      await waitForElementToBeRemoved(spinner);
+      const storedState = storage.getItem("auth");
+      const objectFields = Object.keys(storedState);
+      expect(objectFields.includes("id")).toBeTruthy();
+      expect(objectFields.includes("username")).toBeTruthy();
+      expect(objectFields.includes("image")).toBeTruthy();
+    });
+    it("stores authorization header value in storage", async () => {
+      server.use(
+        rest.post("/api/1.0/auth", (req, res, ctx) => {
+          requestBody = req.body;
+          acceptLanguageHeader = req.headers.get("Accept-Language");
+          return res(
+            ctx.status(200),
+            ctx.json({
+              id: 5,
+              username: "user5",
+              image: null,
+              token: "abcdefgh",
+            })
+          );
+        })
+      );
+      setup("user5@mail.com");
+      userEvent.click(button);
+      screen.queryByTestId("test-spinner");
+      await waitForElementToBeRemoved(spinner);
+      const storedState = storage.getItem("auth");
+      expect(storedState.header).toBe("Bearer abcdefgh");
     });
   });
   describe("Internationalization", () => {

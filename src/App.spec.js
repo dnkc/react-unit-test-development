@@ -3,8 +3,7 @@ import App from "./App";
 import userEvent from "@testing-library/user-event";
 import { setupServer } from "msw/node";
 import { rest } from "msw";
-
-let acceptLanguageHeader;
+import storage from "./state/storage";
 const server = setupServer(
   rest.get("/api/1.0/users/:id", (req, res, ctx) => {
     const id = Number.parseInt(req.params.id);
@@ -195,5 +194,17 @@ describe("Login", () => {
     await scren.findByTestId("home-page");
     const username = await screen.findByText("user5");
     expect(username).toBeInTheDocument();
+  });
+  it("stores logged in state in local storage", async () => {
+    setupLoggedIn();
+    await screen.getByTestId("home-page");
+    const state = JSON.parse(storage.getItem("auth"));
+    expect(state.isLoggedIn).toBeTruthy();
+  });
+  it("displays layout of logged in state", () => {
+    storage.setItem("auth", { isLoggedIn: true });
+    setup("/");
+    const myProfileLink = screen.queryByRole("link", { name: "My Profile" });
+    expect(myProfileLink).toBeInTheDocument();
   });
 });

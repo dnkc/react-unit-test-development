@@ -1,11 +1,11 @@
 import React from "react";
 import defaultProfileImage from "../assets/profile.png";
-import { AuthContext } from "../state/AuthContextWrapper";
-import { useContext } from "react";
+import { useSelector } from "react-redux";
 
 const ProfileCard = (props) => {
   const { user } = props;
-  const auth = useContext(AuthContext);
+  //const auth = useContext(AuthContext);
+  const auth = useSelector((state) => state);
 
   return (
     <>

@@ -39,7 +39,9 @@ beforeEach(() => {
   counter = 0;
   server.resetHandlers();
 });
-
+afterEach(() => {
+  localStorage.clear();
+});
 describe("Sign Up Page", () => {
   describe("Layout", () => {
     // must use either test() or it()
